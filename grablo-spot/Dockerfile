@@ -1,0 +1,62 @@
+# Grablo Spot — HA add-on image (same recipe as Grablo IoT Core's add-on in grablo/grablo-hass-addons, Spot .deb).
+# Built on the HA base (build.yaml) using the same recipe as the standalone image:
+# fetch the public release .deb and extract it (install scripts are not run).
+ARG BUILD_FROM
+FROM ${BUILD_FROM}
+
+ARG GRABLO_VERSION=2.0.0
+# Grablo Spot (2.x) deb: releases/spot/grablo-spot_<ver>_<arch>.deb. GRABLO_PRODUCT=core is kept only so the recipe
+# stays identical to the IoT Core add-on (grablo/grablo-hass-addons) — this repository always builds spot.
+ARG GRABLO_PRODUCT=spot
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH=/usr/lib/grablo \
+    GRABLO_CONTAINER=1 \
+    S6_KEEP_ENV=1
+# S6_KEEP_ENV=1: the HA base image runs the entrypoint under s6-overlay, which by
+# default starts services with a BLANK environment. Without this, the Supervisor-
+# injected SUPERVISOR_TOKEN never reaches grablo → add-on auto-auth (controller
+# 1.20.0+) silently fails. Verified on a real HAOS VM. (s6-overlay README: if
+# S6_KEEP_ENV is set, the whole supervision tree sees the original env vars.)
+
+# Runtime dependencies (same set as grablo-docker/Dockerfile — keep in sync).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      vlc libvlc5 libxss1 libltdl7 libssh2-1 libcurl4 libatomic1 \
+      libusb-1.0-0 libpq5 unixodbc libpulse0 libvulkan1 \
+      pulseaudio pulseaudio-utils alsa-utils libharfbuzz0b libxml2 \
+      libfreetype6 mosquitto ca-certificates curl \
+      libxcursor1 libxinerama1 libxrandr2 libxi6 libwayland-cursor0 \
+      libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
+ && rm -rf /var/lib/apt/lists/*
+# ★ libxi6 는 2026-09-22 trixie 전환에서 **명시로 옮긴 것**이다. bullseye 에서는
+#   다른 패키지의 전이 의존으로 딸려와 목록에 없어도 됐는데, trixie 에서 그 체인이
+#   끊겨 `libXi.so.6 => not found` 가 났다(grablo 본체와 libgrablo-media.so 둘 다).
+#   배포 중인 1.29.1(bullseye) 이미지는 미해결 0 건이라 이것은 전환이 만든 회귀다.
+#   전이 의존에 기대면 베이스가 바뀔 때마다 같은 일이 난다 — 필요한 것은 적어 둔다.
+
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    case "${GRABLO_PRODUCT}" in \
+      core) url="https://downloads.grablo.co/releases/grablo_${GRABLO_VERSION}_${arch}.deb" ;; \
+      spot) url="https://downloads.grablo.co/releases/spot/grablo-spot_${GRABLO_VERSION}_${arch}.deb" ;; \
+      *) echo "GRABLO_PRODUCT must be core or spot" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /tmp/grablo.deb "$url"; \
+    dpkg-deb -x /tmp/grablo.deb /tmp/grablo-root; \
+    cp -a /tmp/grablo-root/usr/bin/grablo /usr/bin/; \
+    cp -a /tmp/grablo-root/usr/lib/grablo /usr/lib/; \
+    cp -a /tmp/grablo-root/usr/share/grablo /usr/share/; \
+    # Image-owned copy: the entrypoint moves /usr/share/grablo onto /data (models, face DB) with `cp -an`, which never
+    # overwrites — the local screen (www/spot) and the edition marker (product.json) would stay at the first install's
+    # version. The entrypoint refreshes them from here on every start.
+    mkdir -p /opt/grablo-image; \
+    cp -a /tmp/grablo-root/usr/share/grablo/www /opt/grablo-image/www 2>/dev/null || true; \
+    cp -a /tmp/grablo-root/usr/share/grablo/product.json /opt/grablo-image/product.json 2>/dev/null || true; \
+    rm -rf /tmp/grablo.deb /tmp/grablo-root; \
+    ldconfig /usr/lib/grablo
+
+COPY rootfs/entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh \
+ && chmod +x /entrypoint.sh /usr/bin/grablo/grablo
+
+WORKDIR /usr/bin/grablo
+CMD ["/entrypoint.sh"]
