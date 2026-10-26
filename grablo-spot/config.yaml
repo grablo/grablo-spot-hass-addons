@@ -2,7 +2,7 @@
 #   Separate product and repository from Grablo IoT Core (grablo/grablo-hass-addons): own version line (Spot 2.x) and image.
 #   HA gives each add-on its own /data, so moving from the IoT Core add-on means adding the device again.
 name: Grablo Spot
-version: "2.0.1"
+version: "2.1.0"
 slug: grablo_spot
 description: AI camera search and alerts for your existing IP cameras, next to Home Assistant
 url: https://grablo.co
