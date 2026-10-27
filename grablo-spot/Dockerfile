@@ -46,10 +46,11 @@ RUN set -eux; \
     cp -a /tmp/grablo-root/usr/lib/grablo /usr/lib/; \
     cp -a /tmp/grablo-root/usr/share/grablo /usr/share/; \
     # Image-owned copy: the entrypoint moves /usr/share/grablo onto /data (models, face DB) with `cp -an`, which never
-    # overwrites — the local screen (www/spot) and the edition marker (product.json) would stay at the first install's
-    # version. The entrypoint refreshes them from here on every start.
+    # overwrites — the local screen (www/spot), the message catalogs (locales/<code>.json) and the edition marker
+    # (product.json) would stay at the first install's version. The entrypoint refreshes them from here on every start.
     mkdir -p /opt/grablo-image; \
     cp -a /tmp/grablo-root/usr/share/grablo/www /opt/grablo-image/www 2>/dev/null || true; \
+    cp -a /tmp/grablo-root/usr/share/grablo/locales /opt/grablo-image/locales 2>/dev/null || true; \
     cp -a /tmp/grablo-root/usr/share/grablo/product.json /opt/grablo-image/product.json 2>/dev/null || true; \
     rm -rf /tmp/grablo.deb /tmp/grablo-root; \
     ldconfig /usr/lib/grablo
