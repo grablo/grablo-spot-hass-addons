@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.2
+
+- Remote access can now be turned on from the local screen: connect a Grablo account to view cameras from anywhere at spot.grablo.co and get phone alerts, with no port forwarding.
+- A device registered to another account is not connected; you are asked to remove it from that account first.
+
+Full release notes: https://grablo.co/news
+
 ## 2.1.1
 
 - Fixed a crash when the cloud connection reconnects while messages are being sent.
