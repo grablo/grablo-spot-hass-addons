@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.1
+
+- Fixed a crash when the cloud connection reconnects while messages are being sent.
+- Messages, the local screen and setup are now available in 17 languages; the language follows your choice, or your system language.
+
+Full release notes: https://grablo.co/news
+
 ## 2.1.0
 
 - Sound detection: alerts can now trigger on sounds a camera hears (for example glass breaking, a dog barking or a siren).
