@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.3
+
+- Remote access from the local screen is more reliable: cancelling while the browser is approving no longer leaves a half-finished link, and approving with a different Grablo account is refused instead of connecting the device to the wrong account.
+- A pending connection request is withdrawn once the device is linked, so the code cannot be used again.
+
+Full release notes: https://grablo.co/news
+
 ## 2.1.2
 
 - Remote access can now be turned on from the local screen: connect a Grablo account to view cameras from anywhere at spot.grablo.co and get phone alerts, with no port forwarding.

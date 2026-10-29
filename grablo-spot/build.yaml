@@ -13,7 +13,7 @@ build_from:
   amd64: ghcr.io/home-assistant/amd64-base-debian:trixie
   aarch64: ghcr.io/home-assistant/aarch64-base-debian:trixie
 args:
-  GRABLO_VERSION: "2.1.2"
+  GRABLO_VERSION: "2.1.3"
   GRABLO_PRODUCT: "spot"
 labels:
   org.opencontainers.image.title: "Grablo Spot"
